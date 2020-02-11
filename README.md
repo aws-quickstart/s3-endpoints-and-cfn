@@ -1,2 +1,1 @@
-# test-project
-Test project illustrate  Sigv2 URL Conversion to SigV4
+#sigv2-to-sigv4 

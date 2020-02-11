@@ -1,0 +1,15 @@
+project:
+  name: sigv2-to-sigv4
+  regions:
+  - us-east-1
+  - us-west-2
+tests:
+  default:
+    template: templates/template.yml
+    parameters:
+      BucketName: "$[taskcat_autobucket]"
+      AccessCIDR: "0.0.0.0/0"
+      AvailabilityZones: "$[taskcat_getaz_2]"
+      KeyPairName: "default"
+
+

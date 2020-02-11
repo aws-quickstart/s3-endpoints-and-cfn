@@ -3,6 +3,7 @@ project:
   regions:
   - us-east-1
   - us-west-2
+  s3_bucket: tonynv
 tests:
   default:
     template: templates/template.yml

@@ -1,4 +1,4 @@
-Description: "Master (+VPC) Template using Sigv2 S3 URLS"
+Description: "Master (+VPC) Template using Sigv4 S3 URLS"
 Metadata:
   LICENSE: Apache License Version 2.0
   AWS::CloudFormation::Interface:
@@ -12,7 +12,7 @@ Metadata:
       - PublicSubnet1CIDR
       - PublicSubnet2CIDR
     - Label:
-        default:  configuration
+        default: Quick Start configuration
       Parameters:
       - KeyPrefix
     ParameterLabels:
@@ -23,9 +23,9 @@ Metadata:
       PublicSubnet2CIDR:
         default: Public subnet 2 CIDR
       BucketName:
-        default:  S3 bucket name
+        default: Quick Start S3 bucket name
       KeyPrefix:
-        default:  S3 key prefix
+        default: Quick Start S3 key prefix
       VPCCIDR:
         default: VPC CIDR
       KeyPairName:
@@ -68,28 +68,28 @@ Parameters:
     Description: CIDR block for the VPC.
     Type: String
   BucketName:
-    AllowedPattern: "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$"
-    ConstraintDescription: " bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-)."
-    Default: tonynv
-    Description: "S3 bucket name for the  assets.  bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-)."
+    Default: 'tonynv'
+    Description: "S3 bucket name for the Quick Start assets. Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-)."
     Type: String
   KeyPrefix:
     AllowedPattern: "^[0-9a-zA-Z-/]*$"
-    ConstraintDescription: " key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/)."
-    Default: sigv2-to-sigv4/
-    Description: "S3 key prefix for the  assets.  key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/)."
+    ConstraintDescription: "Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/)."
+    Default: 'sigv2-to-sigv4/'
+    Description: "S3 key prefix for the Quick Start assets. Quick Start key prefix can include numbers, lowercase letters, uppercase letters, hyphens (-), and forward slash (/)."
     Type: String
 Conditions:
-  GovCloudCondition: !Equals
-    - !Ref 'AWS::Region'
-    - us-gov-west-1
+  UsingDefaultBucket: !Equals [!Ref BucketName, 'tonynv']
 Resources:
   VPCStack:
     Type: 'AWS::CloudFormation::Stack'
     Properties:
       TemplateURL: !Sub
-        - https://${BucketName}.${Region}.amazonaws.com/${KeyPrefix}submodules/quickstart-aws-vpc/templates/aws-vpc.template
-        - Region: !If [GovCloudCondition , s3-us-gov-west-1 , s3]
+        - https://${S3Bucket}.${S3Region}.amazonaws.com/${KeyPrefix}submodules/quickstart-aws-vpc/templates/aws-vpc.template
+        - S3Region: !Sub 's3.${AWS::Region}'
+          S3Bucket: !If
+             - UsingDefaultBucket
+             - !Sub '${BucketName}-${AWS::Region}'
+             - !Ref BucketName
       Parameters:
         AvailabilityZones: !Join
           - ','
@@ -103,11 +103,12 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-        - https://${BucketName}.${Region}.amazonaws.com/${KeyPrefix}templates/authenticated-s3.template.yaml
-        - Region: !If [GovCloudCondition , s3-us-gov-west-1 , s3]
+        - https://${S3Bucket}.${S3Region}.amazonaws.com/${KeyPrefix}templates/authenticated-s3.template.yaml
+        - S3Region: !Sub 's3.${AWS::Region}'
+          S3Bucket: !Sub '${BucketName}-${AWS::Region}'
       Parameters:
-        KeyPrefix: !Ref KeyPrefix
         BucketName: !Ref BucketName
+        KeyPrefix: !Ref KeyPrefix
         KeyPairName: !Ref KeyPairName
         AccessCIDR: !Ref AccessCIDR
         SubnetId:

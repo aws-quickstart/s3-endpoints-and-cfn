@@ -84,7 +84,7 @@ Resources:
     Type: 'AWS::CloudFormation::Stack'
     Properties:
       TemplateURL: !Sub
-        - https://${S3Bucket}.${S3Region}.amazonaws.com/${KeyPrefix}submodules/quickstart-aws-vpc/templates/aws-vpc.template
+        - https://${S3Bucket}.${S3Region}.{AWS::URLSuffix}/${KeyPrefix}submodules/quickstart-aws-vpc/templates/aws-vpc.template
         - S3Region: !Sub 's3.${AWS::Region}'
           S3Bucket: !If
              - UsingDefaultBucket
@@ -103,7 +103,7 @@ Resources:
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-        - https://${S3Bucket}.${S3Region}.amazonaws.com/${KeyPrefix}templates/authenticated-s3.template.yaml
+        - https://${S3Bucket}.${S3Region}.{AWS::URLSuffix}/${KeyPrefix}templates/authenticated-s3.template.yaml
         - S3Region: !Sub 's3.${AWS::Region}'
           S3Bucket: !Sub '${BucketName}-${AWS::Region}'
       Parameters:

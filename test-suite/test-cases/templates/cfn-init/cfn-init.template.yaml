@@ -69,7 +69,7 @@ Resources:
               - Action:
                   - 's3:GetObject'
                 Resource: !Sub
-                  - 'arn:aws:s3:::${S3Bucket}/${KeyPrefix}*'
+                  - 'arn:${AWS::Partition}:s3:::${S3Bucket}/${KeyPrefix}*'
                   - S3Bucket: <THIS_VALUE_GETS_REPLACED>
                 Effect: Allow
           PolicyName: AuthenticatedS3GetObjects

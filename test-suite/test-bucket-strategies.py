@@ -36,7 +36,7 @@ SV4_POLICY = """{
             "Effect": "Deny",
             "Principal": "*",
             "Action": "s3:*",
-            "Resource": "arn:aws:s3:::%s/*",
+            "Resource": "arn:%s:s3:::%s/*",
             "Condition": {"StringEquals": {"s3:signatureversion": "AWS"}}
         }
     ]
@@ -125,13 +125,13 @@ def create_bucket(args):
         kwargs["CreateBucketConfiguration"] = {'LocationConstraint': region}
     s3.create_bucket(**kwargs)
     s3.get_waiter('bucket_exists').wait(Bucket=kwargs["Bucket"])
-    s3.put_bucket_policy(Bucket=kwargs["Bucket"], Policy=SV4_POLICY % kwargs["Bucket"])
+    s3.put_bucket_policy(Bucket=kwargs["Bucket"], Policy=SV4_POLICY % (s3.meta.partition, kwargs["Bucket"]))
     pool.map(func, files)
     kwargs["Bucket"] = build_bucket_name(region, region_suffix=True)
     func = partial(create_object, s3=s3, bucket=kwargs["Bucket"])
     s3.create_bucket(**kwargs)
     s3.get_waiter('bucket_exists').wait(Bucket=kwargs["Bucket"])
-    s3.put_bucket_policy(Bucket=kwargs["Bucket"], Policy=SV4_POLICY % kwargs["Bucket"])
+    s3.put_bucket_policy(Bucket=kwargs["Bucket"], Policy=SV4_POLICY % (s3.meta.partition, kwargs["Bucket"]))
     pool.map(func, files)
     pool.close()
     pool.join()

@@ -172,6 +172,10 @@ def delete_bucket(b, s3):
             response = s3.list_object_versions(Bucket=b["Name"])
         except s3.exceptions.NoSuchBucket:
             return
+        except s3.exceptions.ClientError as e:
+            if "IllegalLocationConstraintException" in str(e):
+                return
+            raise
         objects = response.get('Versions', []) + response.get('DeleteMarkers', [])
         delete = []
         for item in objects:
@@ -279,7 +283,7 @@ def create_stack(args):
         except Exception as e:
             retries += 1
             if retries > 10:
-                return str(e), "None", template_url, profile
+                return str(e), f"arn:aws:cloudformation:{region}:NONE:stack/NONE/NONE", template_url, profile
             sleep(5)
     while True:
         status = cfn.describe_stacks(StackName=stack_id)["Stacks"][0]["StackStatus"]

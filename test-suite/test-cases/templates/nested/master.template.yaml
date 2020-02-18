@@ -1,0 +1,13 @@
+Description: "sv4 test simple nesting master"
+Parameters: {}
+Resources:
+  Child:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      TemplateURL: !Sub
+        - 'https://${S3Bucket}.${S3Hostname}/${KeyPrefix}child.template.yaml'
+        - S3Bucket: !Sub <THIS_VALUE_GETS_REPLACED>
+          S3Hostname: !Sub <THIS_VALUE_GETS_REPLACED>
+      Parameters:
+        BucketName: !Ref BucketName
+        KeyPrefix: !Ref KeyPrefix

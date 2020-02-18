@@ -1,0 +1,13 @@
+Conditions: {}
+Parameters:
+  BucketName:
+    Type: String
+  KeyPrefix:
+    Type: String
+Replacements:
+  S3Bucket: !Sub '${BucketName}'
+  S3Hostname: !Sub 's3.amazonaws.com'
+BucketStrategies:
+  - RegionSuffix
+  - SingleRegion
+  - AnyRegion

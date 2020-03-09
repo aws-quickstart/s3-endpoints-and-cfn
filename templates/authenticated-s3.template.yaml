@@ -23,6 +23,10 @@ Parameters:
   VPCID:
     Description: The VPC to launch the GitHub Enterprise server
     Type: AWS::EC2::VPC::Id
+  BucketRegion:
+    Default: 'us-east-1'
+    Description: "Region of Staging bucket (BucketName)"
+    Type: String
   BucketName:
     AllowedPattern: '^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$'
     Description: "S3 bucket name for the Quick Start assets. Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-)."
@@ -70,6 +74,8 @@ Mappings:
       US1604HVM: ami-0154a1d609dece568
     us-west-2:
       US1604HVM: ami-0994c095691a46fb5
+Conditions:
+  UsingDefaultBucket: !Equals [!Ref BucketName, 'tonynv']
 Resources:
   RootRole:
     Type: AWS::IAM::Role
@@ -87,7 +93,16 @@ Resources:
             Statement:
               - Action:
                   - 's3:GetObject'
-                Resource: !Sub 'arn:aws:s3:::${BucketName}-${AWS::Region}/${KeyPrefix}*'
+                Resource: !Sub
+                 - 'arn:aws:s3:::${S3Bucket}-${S3Region}/${KeyPrefix}*'
+                 - S3Region: !If
+                    - UsingDefaultBucket
+                    - !Ref AWS::Region
+                    - !Ref BucketRegion
+                   S3Bucket: !If
+                    - UsingDefaultBucket
+                    - !Sub '${BucketName}-${AWS::Region}'
+                    - !Ref BucketName
                 Effect: Allow
           PolicyName: AuthenticatedS3GetObjects
   RootInstanceProfile:
@@ -151,8 +166,13 @@ Resources:
       AWS::CloudFormation::Authentication:
         S3AccessCreds:
           type: S3
-          buckets:
-            - !Sub '${BucketName}-${AWS::Region}'
+          buckets: !Sub
+             - ${S3Bucket}
+             - S3Bucket: !If
+                - UsingDefaultBucket
+                - !Sub '${BucketName}-${AWS::Region}'
+                - !Ref BucketName
+
           roleName:
             Ref: RootRole
       AWS::CloudFormation::Init:
@@ -163,9 +183,15 @@ Resources:
           files:
             /tmp/bootstrap.sh:
               source: !Sub
-                - https://${S3Bucket}.${S3Region}.amazonaws.com/${KeyPrefix}scripts/print_stdout.sh
-                - S3Region: !Sub 's3.${AWS::Region}'
-                  S3Bucket: !Sub '${BucketName}-${AWS::Region}'
+                - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${KeyPrefix}scripts/print_stdout.sh
+                - S3Region: !If
+                   - UsingDefaultBucket
+                   - !Ref AWS::Region
+                   - !Ref BucketRegion
+                  S3Bucket: !If
+                   - UsingDefaultBucket
+                   - !Sub '${BucketName}-${AWS::Region}'
+                   - !Ref BucketName
               mode: '000755'
               owner: root
               group: root

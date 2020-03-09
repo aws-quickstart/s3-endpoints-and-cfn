@@ -1,16 +1,25 @@
 project:
   name: sigv2-to-sigv4
-  regions:
-  - us-east-1
-  - us-west-2
   s3_bucket: tonynv
 tests:
-  default:
+  us-east-1-using-defaults:
     template: templates/template.yml
     parameters:
       BucketName: "$[taskcat_autobucket]"
       AccessCIDR: "0.0.0.0/0"
       AvailabilityZones: "$[taskcat_getaz_2]"
       KeyPairName: "default"
+    regions:
+    - us-east-1
+  us-west-2-use-east-1-bucket:
+    template: templates/template.yml
+    parameters:
+      BucketName: "tonynv"
+      BucketRegion: "us-east-1"
+      AccessCIDR: "0.0.0.0/0"
+      AvailabilityZones: "$[taskcat_getaz_2]"
+      KeyPairName: "default"
+    regions:
+    - us-west-2
 
 

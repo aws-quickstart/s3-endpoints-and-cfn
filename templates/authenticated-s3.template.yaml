@@ -32,6 +32,11 @@ Parameters:
     AllowedValues: ['true', 'false']
     Description: "Append Current region to BucketName (BucketName-us-east-1) set this to true if you have staged you asset in supported regions"
     Type: String
+  UseCrossRegionStagingBucket:
+   Default: 'true'
+   AllowedValues: ['true', 'false']
+   Description: "Set to true if template are staged in a region other than the launch region (Requires AppendRegiontoBucketName to be false)"
+   Type: String
   BucketName:
     AllowedPattern: '^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$'
     Description: "S3 bucket name for the Quick Start assets. Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-)."
@@ -81,6 +86,7 @@ Mappings:
       US1604HVM: ami-0994c095691a46fb5
 Conditions:
   AddRegiontoBucketName: !Equals  ['true', !Ref AppendRegiontoBucketName]
+  CrossRegionStagingBucket: !Equals  ['true', !Ref UseCrossRegionStagingBucket]
 Resources:
   RootRole:
     Type: AWS::IAM::Role
@@ -188,7 +194,10 @@ Resources:
                 - S3Region: !If
                    - AddRegiontoBucketName
                    - !Ref AWS::Region
-                   - !Ref BucketRegion
+                   - !If
+                     - CrossRegionStagingBucket
+                     - !Ref AWS::Region
+                     - !Ref BucketRegion
                   S3Bucket: !If
                    - AddRegiontoBucketName
                    - !Sub '${BucketName}-${AWS::Region}'

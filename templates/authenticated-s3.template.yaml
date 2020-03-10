@@ -27,6 +27,11 @@ Parameters:
     Default: 'us-east-1'
     Description: "Region of Staging bucket (BucketName)"
     Type: String
+  AppendRegiontoBucketName:
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+    Description: "Append Current region to BucketName (BucketName-us-east-1) set this to true if you have staged you asset in supported regions"
+    Type: String
   BucketName:
     AllowedPattern: '^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$'
     Description: "S3 bucket name for the Quick Start assets. Quick Start bucket name can include numbers, lowercase letters, uppercase letters, and hyphens (-). It cannot start or end with a hyphen (-)."
@@ -75,7 +80,7 @@ Mappings:
     us-west-2:
       US1604HVM: ami-0994c095691a46fb5
 Conditions:
-  UsingDefaultBucket: !Equals [!Ref BucketName, 'tonynv']
+  AddRegiontoBucketName: !Equals  ['true', !Ref AppendRegiontoBucketName]
 Resources:
   RootRole:
     Type: AWS::IAM::Role
@@ -94,16 +99,11 @@ Resources:
               - Action:
                   - 's3:GetObject'
                 Resource: !Sub
-                 - arn:aws:s3:::${S3Bucket}/${KeyPrefix}*
+                 - 'arn:aws:s3:::${S3Bucket}/${KeyPrefix}*'
                  - S3Bucket: !If
-                   - UsingDefaultBucket
-                   - !Sub
-                     - '${BucketName}-${S3Region}'
-                     - S3Region: !If
-                       - UsingDefaultBucket
-                       - !Ref AWS::Region
-                       - !Ref BucketRegion
-                   - !Ref BucketName
+                    - AddRegiontoBucketName
+                    - !Sub '${BucketName}-${AWS::Region}'
+                    - !Ref BucketName
                 Effect: Allow
           PolicyName: AuthenticatedS3GetObjects
   RootInstanceProfile:
@@ -170,14 +170,10 @@ Resources:
           buckets: !Sub
              - ${S3Bucket}
              - S3Bucket: !If
-                - UsingDefaultBucket
-                - !Sub
-                  - ${BucketName}-${S3Region}
-                  - S3Region: !If
-                    - UsingDefaultBucket
-                    - !Ref AWS::Region
-                    - !Ref BucketRegion
+                - AddRegiontoBucketName
+                - !Sub '${BucketName}-${AWS::Region}'
                 - !Ref BucketName
+
           roleName:
             Ref: RootRole
       AWS::CloudFormation::Init:
@@ -190,11 +186,11 @@ Resources:
               source: !Sub
                 - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${KeyPrefix}scripts/print_stdout.sh
                 - S3Region: !If
-                   - UsingDefaultBucket
+                   - AddRegiontoBucketName
                    - !Ref AWS::Region
                    - !Ref BucketRegion
                   S3Bucket: !If
-                   - UsingDefaultBucket
+                   - AddRegiontoBucketName
                    - !Sub '${BucketName}-${AWS::Region}'
                    - !Ref BucketName
               mode: '000755'

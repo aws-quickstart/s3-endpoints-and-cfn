@@ -74,6 +74,11 @@ Parameters:
     Default: 'tonynv'
     Description: "Name of S3 bucket where cloudfromation source is staged (For AWS QuickStart this value would default to aws-quickstart)"
     Type: String
+  AppendRegiontoBucketName:
+    Default: 'false'
+    AllowedValues: ['true', 'false']
+    Description: "Append Current region to BucketName (BucketName-us-east-1)"
+    Type: String
   BucketRegion:
     Default: 'us-east-1'
     Description: "Region of Staging bucket (BucketName)"
@@ -85,7 +90,7 @@ Parameters:
     Description: "S3 keyprefix for the Cloudformation assets"
     Type: String
 Conditions:
-  UsingDefaultBucket: !Equals [!Ref BucketName, 'tonynv']
+  AddRegiontoBucketName: !Equals  ['true', !Ref AppendRegiontoBucketName]
 Resources:
   VPCStack:
     Type: 'AWS::CloudFormation::Stack'
@@ -93,12 +98,12 @@ Resources:
       TemplateURL: !Sub
         - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${KeyPrefix}submodules/quickstart-aws-vpc/templates/aws-vpc.template
         - S3Region: !If
-             - UsingDefaultBucket
+             - AddRegiontoBucketName
              - !Ref AWS::Region
              - !Ref BucketRegion
           S3Bucket: !If
-             - UsingDefaultBucket
-             - !Sub '${BucketName}-${AWS::Region}'
+             - AddRegiontoBucketName
+             - !Sub ${BucketName}-${AWS::Region}
              - !Ref BucketName
       Parameters:
         AvailabilityZones: !Join
@@ -115,18 +120,19 @@ Resources:
       TemplateURL: !Sub
         - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${KeyPrefix}templates/authenticated-s3.template.yaml
         - S3Region: !If
-             - UsingDefaultBucket
+             - AddRegiontoBucketName
              - !Ref AWS::Region
              - !Ref BucketRegion
           S3Bucket: !If
-             - UsingDefaultBucket
-             - !Sub '${BucketName}-${AWS::Region}'
+             - AddRegiontoBucketName
+             - !Sub ${BucketName}-${AWS::Region}
              - !Ref BucketName
       Parameters:
         BucketName: !Ref BucketName
         KeyPrefix: !Ref KeyPrefix
         KeyPairName: !Ref KeyPairName
         AccessCIDR: !Ref AccessCIDR
+        AppendRegiontoBucketName: !Ref AppendRegiontoBucketName
         SubnetId:
           Fn::GetAtt:
           - VPCStack

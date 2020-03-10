@@ -94,15 +94,16 @@ Resources:
               - Action:
                   - 's3:GetObject'
                 Resource: !Sub
-                 - 'arn:aws:s3:::${S3Bucket}-${S3Region}/${KeyPrefix}*'
-                 - S3Region: !If
-                    - UsingDefaultBucket
-                    - !Ref AWS::Region
-                    - !Ref BucketRegion
-                   S3Bucket: !If
-                    - UsingDefaultBucket
-                    - !Sub '${BucketName}-${AWS::Region}'
-                    - !Ref BucketName
+                 - arn:aws:s3:::${S3Bucket}/${KeyPrefix}*
+                 - S3Bucket: !If
+                   - UsingDefaultBucket
+                   - !Sub
+                     - '${BucketName}-${S3Region}'
+                     - S3Region: !If
+                       - UsingDefaultBucket
+                       - !Ref AWS::Region
+                       - !Ref BucketRegion
+                   - !Ref BucketName
                 Effect: Allow
           PolicyName: AuthenticatedS3GetObjects
   RootInstanceProfile:
@@ -170,9 +171,13 @@ Resources:
              - ${S3Bucket}
              - S3Bucket: !If
                 - UsingDefaultBucket
-                - !Sub '${BucketName}-${AWS::Region}'
+                - !Sub
+                  - ${BucketName}-${S3Region}
+                  - S3Region: !If
+                    - UsingDefaultBucket
+                    - !Ref AWS::Region
+                    - !Ref BucketRegion
                 - !Ref BucketName
-
           roleName:
             Ref: RootRole
       AWS::CloudFormation::Init:

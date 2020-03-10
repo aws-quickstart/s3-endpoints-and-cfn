@@ -21,5 +21,13 @@ tests:
       KeyPairName: "default"
     regions:
     - us-west-2
-
-
+  us-west-2-use-regional-bucket:
+    template: templates/template.yml
+    parameters:
+      BucketName: "tonynv"
+      BucketRegion: "us-west-2"
+      AccessCIDR: "0.0.0.0/0"
+      AvailabilityZones: "$[taskcat_getaz_2]"
+      KeyPairName: "default"
+    regions:
+    - us-west-2

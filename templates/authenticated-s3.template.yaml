@@ -192,12 +192,9 @@ Resources:
               source: !Sub
                 - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${KeyPrefix}scripts/print_stdout.sh
                 - S3Region: !If
-                   - AddRegiontoBucketName
+                   - CrossRegionStagingBucket
                    - !Ref AWS::Region
-                   - !If
-                     - CrossRegionStagingBucket
-                     - !Ref AWS::Region
-                     - !Ref BucketRegion
+                   - !Ref BucketRegion
                   S3Bucket: !If
                    - AddRegiontoBucketName
                    - !Sub '${BucketName}-${AWS::Region}'

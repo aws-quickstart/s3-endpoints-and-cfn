@@ -18,6 +18,7 @@ tests:
       BucketRegion: "us-east-1"
       AccessCIDR: "0.0.0.0/0"
       AvailabilityZones: "$[taskcat_getaz_2]"
+      UseCrossRegionStagingBucket: 'true'
       KeyPairName: "default"
     regions:
     - us-west-2
@@ -29,5 +30,53 @@ tests:
       AccessCIDR: "0.0.0.0/0"
       AvailabilityZones: "$[taskcat_getaz_2]"
       KeyPairName: "default"
+    regions:
+    - us-west-2
+  both-false-east-1:
+    template: templates/template.yml
+    parameters:
+      BucketName: "tonynv"
+      BucketRegion: "us-east-1"
+      AccessCIDR: "0.0.0.0/0"
+      AvailabilityZones: "$[taskcat_getaz_2]"
+      KeyPairName: "default"
+      AppendRegiontoBucketName: 'false'
+      UseCrossRegionStagingBucket: 'false'
+    regions:
+    - us-east-1
+  both-true-east-1:
+    template: templates/template.yml
+    parameters:
+      BucketName: "tonynv"
+      BucketRegion: "us-east-1"
+      AccessCIDR: "0.0.0.0/0"
+      AvailabilityZones: "$[taskcat_getaz_2]"
+      KeyPairName: "default"
+      AppendRegiontoBucketName: 'true'
+      UseCrossRegionStagingBucket: 'true'
+    regions:
+    - us-east-1
+  both-false-west2:
+    template: templates/template.yml
+    parameters:
+      BucketName: "tonynv"
+      BucketRegion: "us-west-2"
+      AccessCIDR: "0.0.0.0/0"
+      AvailabilityZones: "$[taskcat_getaz_2]"
+      KeyPairName: "default"
+      AppendRegiontoBucketName: 'false'
+      UseCrossRegionStagingBucket: 'false'
+    regions:
+    - us-west-2
+  both-true-us-west-2:
+    template: templates/template.yml
+    parameters:
+      BucketName: "tonynv"
+      BucketRegion: "us-west-2"
+      AccessCIDR: "0.0.0.0/0"
+      AvailabilityZones: "$[taskcat_getaz_2]"
+      KeyPairName: "default"
+      AppendRegiontoBucketName: 'true'
+      UseCrossRegionStagingBucket: 'true'
     regions:
     - us-west-2

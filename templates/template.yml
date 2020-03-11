@@ -104,12 +104,9 @@ Resources:
       TemplateURL: !Sub
         - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${KeyPrefix}submodules/quickstart-aws-vpc/templates/aws-vpc.template
         - S3Region: !If
-             - AddRegiontoBucketName
-             - !Ref AWS::Region
-             - BucketRegion: !f
-               - UseCrossRegionStagingBucket
-               - !Ref AWS::Region
-               - !Ref BucketRegion
+              - CrossRegionStagingBucket
+              - !Ref AWS::Region
+              - !Ref BucketRegion
           S3Bucket: !If
              - AddRegiontoBucketName
              - !Sub ${BucketName}-${AWS::Region}
@@ -129,12 +126,9 @@ Resources:
       TemplateURL: !Sub
         - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${KeyPrefix}templates/authenticated-s3.template.yaml
         - S3Region: !If
-             - AddRegiontoBucketName
+             - CrossRegionStagingBucket
              - !Ref AWS::Region
-             - !If
-               - CrossRegionStagingBucket
-               - !Ref AWS::Region
-               - !Ref BucketRegion
+             - !Ref BucketRegion
           S3Bucket: !If
              - AddRegiontoBucketName
              - !Sub ${BucketName}-${AWS::Region}

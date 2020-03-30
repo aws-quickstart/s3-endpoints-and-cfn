@@ -1,0 +1,101 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "Workload Template using Sigv2 S3 URLS"
+Metadata:
+  LICENSE: "Apache License, Version 2.0"
+  AUTHOR: "Tony Bulding"
+  EMAIL: "tbulding@amazon.com"
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Simple test parameter
+        Parameters:
+          - ParameterValue
+      - Label:
+          default: The Stack Definition
+        Parameters:
+          - ChildTemplate
+      - Label:
+          default: S3 reference data
+        Parameters:
+          - BucketName
+          - BucketRegion
+    ParameterLabels:
+      ParameterValue:
+        default: Value from master template
+      ChildTemplate:
+        default: The Stack we are going to run
+      BucketName:
+        default: S3 bucket name
+      BucketRegion:
+        default: S3 bucket region
+Parameters:
+  ParameterValue:
+    Description: The value we want to store in Systems Manager Parameter Store
+    Type: String
+  ChildTemplate:
+    AllowedValues:
+      - "Template-0"
+      - "Template-1"
+      - "Template-2"
+    Default: "Template-0"
+    Description: This is the test template we wish to run.
+    Type: String
+  BucketName:
+    AllowedPattern: "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$"
+    ConstraintDescription: >-
+      Quick Start bucket name can include numbers, lowercase letters, uppercase
+      letters, and hyphens (-). It cannot start or end with a hyphen (-).
+    Default: "replace-with-your-staging-bucket"
+    Description: >-
+      S3 bucket name for the Quick Start assets. Quick Start bucket name can
+      include numbers, lowercase letters, uppercase letters, and hyphens (-). It
+      cannot start or end with a hyphen (-).
+    Type: String
+  BucketRegion:
+    Default: "us-east-1"
+    Description: "The AWS Region where the S3 bucket (BucketName) is hosted."
+    Type: String
+
+Conditions:
+  GovCloudCondition: !Equals
+    - !Ref AWS::Region
+    - us-gov-west-1
+  ChildTemplate0Condition: !Equals
+    - !Ref ChildTemplate
+    - "Template-0"
+  ChildTemplate1Condition: !Equals
+    - !Ref ChildTemplate
+    - "Template-1"
+  ChildTemplate2Condition: !Equals
+    - !Ref ChildTemplate
+    - "Template-2"
+Resources:
+  ChildStack0:
+    Condition: ChildTemplate0Condition
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub
+        - "https://${S3Bucket}.s3.amazonaws.com/templates/template.yaml"
+        - S3Bucket: !Ref "BucketName"
+      Parameters:
+        ParameterValue: !Ref "ParameterValue"
+  ChildStack1:
+    Condition: ChildTemplate1Condition
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub
+        - "https://${S3Bucket}.${S3Region}.amazonaws.com/templates/template.yaml"
+        - S3Bucket: !Ref "BucketName"
+          S3Region: !If [GovCloudCondition, s3-us-gov-west-1, s3]
+      Parameters:
+        ParameterValue: !Ref "ParameterValue"
+  ChildStack2:
+    Condition: ChildTemplate2Condition
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub
+        - https://${S3Bucket}.${S3Region}.${AWS::URLSuffix}/templates/template.yaml
+        - S3Bucket: !Ref "BucketName"
+          S3Region: !Sub "s3.${BucketRegion}"
+      Parameters:
+        ParameterValue: !Ref "ParameterValue"

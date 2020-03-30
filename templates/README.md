@@ -1,1 +1,0 @@
-# cfn-authenticated-s3-example

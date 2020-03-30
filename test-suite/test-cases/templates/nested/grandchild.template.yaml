@@ -1,8 +1,0 @@
-Description: "sv4 test simple nesting grandchild"
-Parameters: {}
-Resources:
-  Dummy:
-    Type: "AWS::SSM::Parameter"
-    Properties:
-      Type: String
-      Value: "simple test"

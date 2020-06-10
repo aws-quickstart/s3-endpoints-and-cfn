@@ -1,4 +1,5 @@
-Description: "Master (+VPC) Template using Sigv4 S3 URLS"
+AWSTemplateFormatVersion: 2010-09-09
+Description: Master (+VPC) Template using Sigv4 S3 URLS (qs-1qkt867sp)
 Metadata:
   LICENSE: Apache License Version 2.0
   AWS::CloudFormation::Interface:
@@ -6,26 +7,28 @@ Metadata:
       - Label:
           default: Simple test parameter
         Parameters:
-          - ParameterValue
+          - SSMParameterValue
     ParameterLabels:
-      ParameterValue:
+      SSMParameterValue:
         default: Value from master template
 Parameters:
-  ParameterValue:
+  SSMParameterValue:
     Description: This is the parameter that we will be passing in from the master template
     Type: String
 Resources:
   BasicParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: Sig2SigV4Testing
+      Name: !Sub "${AWS::StackName}-SV2SV4Testing"
       Type: String
-      Value: !Ref "ParameterValue"
+      Value: !Ref "SSMParameterValue"
       Description: SSM Parameter from master stack.
-      AllowedPattern: "^[a-zA-Z]{1,10}$"
       Tags:
         Environment: DEV
 Outputs:
+  ParameterName:
+    Description: The parameter we created based on the incoming value
+    Value: !Sub "${AWS::StackName}-SV2SV4Testing"
   ParameterValue:
     Description: The parameter we created based on the incoming value
     Value: !GetAtt BasicParameter.Value

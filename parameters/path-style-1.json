@@ -1,0 +1,22 @@
+[
+  {
+    "ParameterKey": "SSMParameterValue",
+    "ParameterValue": "ps1"
+  },
+  {
+    "ParameterKey": "ChildTemplate",
+    "ParameterValue": "PathStyle-1"
+  },
+  {
+    "ParameterKey": "BucketName",
+    "ParameterValue": "awsexamplebucket1-us-west-2"
+  },
+  {
+    "ParameterKey": "BucketPrefix",
+    "ParameterValue": "sigv2-to-sigv4/"
+  },
+  {
+    "ParameterKey": "BucketRegion",
+    "ParameterValue": "us-west-2"
+  }
+]

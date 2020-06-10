@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: "Workload Template using Sigv2 S3 URLS"
+Description: Workload Template using Sigv2 S3 URLS (qs-1qkt7uig1)
 Metadata:
   LICENSE: "Apache License, Version 2.0"
   AUTHOR: "Tony Bulding"
@@ -9,7 +9,7 @@ Metadata:
       - Label:
           default: Simple test parameter
         Parameters:
-          - ParameterValue
+          - SSMParameterValue
       - Label:
           default: The Stack Definition
         Parameters:
@@ -18,38 +18,51 @@ Metadata:
           default: S3 reference data
         Parameters:
           - BucketName
+          - BucketPrefix
           - BucketRegion
     ParameterLabels:
-      ParameterValue:
+      SSMParameterValue:
         default: Value from master template
       ChildTemplate:
         default: The Stack we are going to run
       BucketName:
         default: S3 bucket name
+      BucketPrefix:
+        default: S3 Key Prefix
       BucketRegion:
         default: S3 bucket region
 Parameters:
-  ParameterValue:
+  SSMParameterValue:
     Description: The value we want to store in Systems Manager Parameter Store
     Type: String
   ChildTemplate:
     AllowedValues:
-      - "Template-0"
-      - "Template-1"
-      - "Template-2"
-    Default: "Template-0"
+      - "PathStyle-1"
+      - "PathStyle-2"
+      - "VirtualHostedStyle-1"
+    Default: "PathStyle-1"
     Description: This is the test template we wish to run.
     Type: String
   BucketName:
     AllowedPattern: "^[0-9a-zA-Z]+([0-9a-zA-Z-]*[0-9a-zA-Z])*$"
     ConstraintDescription: >-
-      Quick Start bucket name can include numbers, lowercase letters, uppercase
+      The bucket name can include numbers, lowercase letters, uppercase
       letters, and hyphens (-). It cannot start or end with a hyphen (-).
-    Default: "replace-with-your-staging-bucket"
+    Default: "mybucket"
     Description: >-
-      S3 bucket name for the Quick Start assets. Quick Start bucket name can
+      S3 bucket name for the s3 assets. The bucket name can
       include numbers, lowercase letters, uppercase letters, and hyphens (-). It
       cannot start or end with a hyphen (-).
+    Type: String
+  BucketPrefix:
+    AllowedPattern: "^[0-9a-zA-Z-/]*$"
+    ConstraintDescription:
+      The key prefix can include numbers, lowercase letters,
+      uppercase letters, hyphens (-), and forward slash (/).
+    Default: sigv2-to-sigv4/
+    Description: S3 key prefix for the s3 assets. The key prefix
+      can include numbers, lowercase letters, uppercase letters, hyphens (-), and
+      forward slash (/).
     Type: String
   BucketRegion:
     Default: "us-east-1"
@@ -60,42 +73,43 @@ Conditions:
   GovCloudCondition: !Equals
     - !Ref AWS::Region
     - us-gov-west-1
-  ChildTemplate0Condition: !Equals
-    - !Ref ChildTemplate
-    - "Template-0"
+  UsingDefaultBucket: !Equals [!Ref BucketName, "mybucket"]
   ChildTemplate1Condition: !Equals
     - !Ref ChildTemplate
-    - "Template-1"
+    - "PathStyle-1"
   ChildTemplate2Condition: !Equals
     - !Ref ChildTemplate
-    - "Template-2"
+    - "PathStyle-2"
+  ChildTemplate3Condition: !Equals
+    - !Ref ChildTemplate
+    - "VirtualHostedStyle-1"
 Resources:
-  ChildStack0:
-    Condition: ChildTemplate0Condition
-    Type: AWS::CloudFormation::Stack
-    Properties:
-      TemplateURL: !Sub
-        - "https://${S3Bucket}.s3.amazonaws.com/templates/template.yaml"
-        - S3Bucket: !Ref "BucketName"
-      Parameters:
-        ParameterValue: !Ref "ParameterValue"
-  ChildStack1:
+  PathStyleStack1:
+    # Path-Style endpoint no region specified
     Condition: ChildTemplate1Condition
     Type: AWS::CloudFormation::Stack
     Properties:
-      TemplateURL: !Sub
-        - "https://${S3Bucket}.${S3Region}.amazonaws.com/templates/template.yaml"
-        - S3Bucket: !Ref "BucketName"
-          S3Region: !If [GovCloudCondition, s3-us-gov-west-1, s3]
+      TemplateURL: !Sub "https://s3.amazonaws.com/${BucketName}/${BucketPrefix}templates/template.yaml"
       Parameters:
-        ParameterValue: !Ref "ParameterValue"
-  ChildStack2:
+        SSMParameterValue: !Ref "SSMParameterValue"
+  PathStyleStack2:
+    # Path-Style endpoint with specified region
     Condition: ChildTemplate2Condition
     Type: AWS::CloudFormation::Stack
     Properties:
       TemplateURL: !Sub
-        - https://${S3Bucket}.${S3Region}.${AWS::URLSuffix}/templates/template.yaml
-        - S3Bucket: !Ref "BucketName"
-          S3Region: !Sub "s3.${BucketRegion}"
+        - "https://${S3Region}.amazonaws.com/${BucketName}/${BucketPrefix}templates/template.yaml"
+        - S3Region: !If [GovCloudCondition, s3-us-gov-west-1, s3.us-west-2]
       Parameters:
-        ParameterValue: !Ref "ParameterValue"
+        SSMParameterValue: !Ref "SSMParameterValue"
+  VirtualHostedStyleStack3:
+    # Virtual Hosted-Style
+    Condition: ChildTemplate3Condition
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: !Sub
+        - https://${BucketName}.s3.${S3Region}.${AWS::URLSuffix}/${BucketPrefix}templates/template.yaml
+        - S3Region:
+            !If [UsingDefaultBucket, !Ref "AWS::Region", !Ref BucketRegion]
+      Parameters:
+        SSMParameterValue: !Ref "SSMParameterValue"

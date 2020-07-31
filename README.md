@@ -1,1 +1,1 @@
-#sigv2-to-sigv4 
+See the post [Best practices for using Amazon S3 endpoints with AWS CloudFormation](https://aws.amazon.com/blogs/infrastructure-and-automation/best-practices-for-using-amazon-s3-endpoints-in-aws-cloudformation-templates/) on the AWS Infrastructure & Automation blog.
